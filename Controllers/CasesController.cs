@@ -183,11 +183,13 @@ namespace hapiservice.Controllers
            
             if (type == "tamclosed")
             {
-                sbQuery.Append(@"AND (table_condition.title NOT IN ('','Closed-Admin Pending','Open-Reject') ");
+                // 1/21 JH- Removed the condition Closed-Resolved to allow rejected cases to show.
+                sbQuery.Append(@"AND (table_condition.title NOT IN ('','Closed-Admin Pending') ");
             }
             else
             {
-                sbQuery.Append(@"AND (table_condition.title NOT IN ('','Closed','Closed-Admin Pending','Open-Reject') ");
+                // 1/21 JH- Removed the condition Closed-Resolved to allow rejected cases to show.
+                sbQuery.Append(@"AND (table_condition.title NOT IN ('','Closed','Closed-Admin Pending') ");
             }
 
             switch (resolved)
@@ -205,10 +207,10 @@ namespace hapiservice.Controllers
             switch (workable)
             {
                 case 0:
-                    sbQuery.Append(@"AND ([status].title IN ('','Pending - Install','Pending - PD','Pending - PS','Pending - Upgrade','Solved Pending Confirmation','File CR','Await SW Rel/Dev','Pending ClientAction') OR [status].title ='Awaiting Hosting Services' AND dateadd(day, 3,table_status_chg.creation_time) < getdate())) ");
+                    sbQuery.Append(@"AND ([status].title IN ('','Pending - Install','Pending - PD','Pending - PS','Pending - Upgrade','Solved Pending Confirmation','File CR','Await SW Rel/Dev','Pending ClientAction','File DBA') OR [status].title ='Awaiting Hosting Services' AND dateadd(day, 3,table_status_chg.creation_time) < getdate())) ");
                     break;
                 case 1:
-                    sbQuery.Append(@"AND ([status].title NOT IN ('','Pending - Install','Pending - PD','Pending - PS','Pending - Upgrade','Solved Pending Confirmation','Awaiting Hosting Services','File CR','Await SW Rel/Dev','Pending ClientAction') OR [status].title ='Awaiting Hosting Services' AND dateadd(day, 3,table_status_chg.creation_time) > getdate())) ");
+                    sbQuery.Append(@"AND ([status].title NOT IN ('','Pending - Install','Pending - PD','Pending - PS','Pending - Upgrade','Solved Pending Confirmation','Awaiting Hosting Services','File CR','Await SW Rel/Dev','Pending ClientAction','File DBA') OR [status].title ='Awaiting Hosting Services' AND dateadd(day, 3,table_status_chg.creation_time) > getdate())) ");
                     break;
                 default:
                     sbQuery.Append(@") ");
