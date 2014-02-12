@@ -38,16 +38,17 @@ namespace hapiservice.Controllers
 				                            ,'BB Analytics'
 				                            ,'Training Registration'
 				                            ,'Training'
-                                            ,'Customized Software' 
+				                            ,'Customized Software'
 				                            )
 			                            AND TU1.login_name = TU.login_name
 			                            AND TGE1.title NOT IN ('File CR')
 		                            ) AS AllCases
 	                            ,(
-		                            SELECT count(1)
+		                            SELECT count(DISTINCT TC2.id_number)
 		                            FROM table_case TC2 WITH (NOLOCK)
 		                            INNER JOIN table_user TU2 WITH (NOLOCK) ON TU2.objid = TC2.case_owner2user
 		                            INNER JOIN table_gbst_elm TGE2 WITH (NOLOCK) ON TGE2.objid = TC2.casests2gbst_elm
+		                            INNER JOIN table_status_chg TSC2 WITH (NOLOCK) ON TC2.objid = TSC2.case_status_chg2case
 		                            WHERE TC2.case_wip2wipbin IS NOT NULL
 			                            AND TC2.x_casetype NOT IN (
 				                            'Esc- Support'
@@ -55,15 +56,26 @@ namespace hapiservice.Controllers
 				                            ,'BB Analytics'
 				                            ,'Training Registration'
 				                            ,'Training'
-                                            ,'Customized Software' 
+				                            ,'Customized Software'
 				                            )
-			                            AND TGE2.title NOT IN (
-				                            'File CR'
-				                            ,'Suggested Resolution'
-				                            ,'Suggestion Filed'
-				                            ,'Await SW Rel/Dev'
-				                            ,'Pending ClientAction'
-				                            ,'Awaiting Hosting Services'
+			                            AND (
+				                            TGE2.title NOT IN (
+					                            ''
+					                            ,'Pending - Install'
+					                            ,'Pending - PD'
+					                            ,'Pending - PS'
+					                            ,'Pending - Upgrade'
+					                            ,'Solved Pending Confirmation'
+					                            ,'File CR'
+					                            ,'Await SW Rel/Dev'
+					                            ,'Pending ClientAction'
+					                            ,'File DBA'
+					                            ,'Awaiting Hosting Services'
+					                            )
+				                            OR (
+					                            TGE2.title = 'Awaiting Hosting Services'
+					                            AND dateadd(day, 3, TSC2.creation_time) > getdate()
+					                            )
 				                            )
 			                            AND TU2.login_name = TU.login_name
 			                            AND (
@@ -72,11 +84,12 @@ namespace hapiservice.Controllers
 				                            )
 		                            ) AS Workable
 	                            ,(
-		                            SELECT count(1)
+		                            SELECT count(DISTINCT tc3.id_number)
 		                            FROM table_case TC3 WITH (NOLOCK)
 		                            INNER JOIN table_user TU3 WITH (NOLOCK) ON TU3.objid = TC3.case_owner2user
 		                            INNER JOIN table_gbst_elm TGE3 WITH (NOLOCK) ON TGE3.objid = TC3.casests2gbst_elm
 		                            INNER JOIN table_gbst_elm SEVERITY3 WITH (NOLOCK) ON TC3.respsvrty2gbst_elm = SEVERITY3.objid
+		                            INNER JOIN table_status_chg TSC3 WITH (NOLOCK) ON TC3.objid = TSC3.case_status_chg2case
 		                            WHERE TC3.case_wip2wipbin IS NOT NULL
 			                            AND TC3.x_casetype NOT IN (
 				                            'Esc- Support'
@@ -84,17 +97,30 @@ namespace hapiservice.Controllers
 				                            ,'BB Analytics'
 				                            ,'Training Registration'
 				                            ,'Training'
-                                            ,'Customized Software' 
+				                            ,'Customized Software'
 				                            )
 			                            AND SEVERITY3.title IN (
 				                            'Down'
 				                            ,'Critical - ANF'
 				                            )
-			                            AND TGE3.title NOT IN (
-				                            'File CR'
-				                            ,'Suggestion Filed'
-				                            ,'Await SW Rel/Dev'
-				                            ,'Pending ClientAction'
+			                            AND (
+				                            TGE3.title NOT IN (
+					                            ''
+					                            ,'Pending - Install'
+					                            ,'Pending - PD'
+					                            ,'Pending - PS'
+					                            ,'Pending - Upgrade'
+					                            ,'Solved Pending Confirmation'
+					                            ,'File CR'
+					                            ,'Await SW Rel/Dev'
+					                            ,'Pending ClientAction'
+					                            ,'File DBA'
+					                            ,'Awaiting Hosting Services'
+					                            )
+				                            OR (
+					                            TGE3.title = 'Awaiting Hosting Services'
+					                            AND dateadd(day, 3, TSC3.creation_time) > getdate()
+					                            )
 				                            )
 			                            AND TU3.login_name = TU.login_name
 			                            AND (
@@ -114,7 +140,7 @@ namespace hapiservice.Controllers
 				                            ,'BB Analytics'
 				                            ,'Training Registration'
 				                            ,'Training'
-                                            ,'Customized Software' 
+				                            ,'Customized Software'
 				                            )
 			                            AND TU1.login_name = TU.login_name
 			                            AND TC4.x_resolved_flag = 1

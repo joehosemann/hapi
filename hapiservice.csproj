@@ -187,10 +187,12 @@
     <Compile Include="Controllers\CasesSummaryController.cs" />
     <Compile Include="Controllers\CasesNotesController.cs" />
     <Compile Include="Controllers\IssueWIController.cs" />
+    <Compile Include="Controllers\QueueActivityController.cs" />
     <Compile Include="Helpers\JsonResult.cs" />
     <Compile Include="Helpers\SqlHelper.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Helpers\Utilities.cs" />
     <Compile Include="Models\CaseNotesModel.cs" />
     <Compile Include="Models\CaseModel.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -204,6 +206,7 @@
     <Compile Include="Models\CaseSummaryModel.cs" />
     <Compile Include="Models\IssueWIModel.cs" />
     <Compile Include="Models\ProductModel.cs" />
+    <Compile Include="Models\QueueActivityModel.cs" />
     <Compile Include="Models\QueueDetailModel.cs" />
     <Compile Include="Models\QueueModel.cs" />
     <Compile Include="Models\TestModel.cs" />

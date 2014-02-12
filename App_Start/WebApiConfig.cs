@@ -29,11 +29,12 @@ namespace hapiservice
             ODataModelBuilder modelBuilder = new ODataConventionModelBuilder();
             modelBuilder.EntitySet<QueueModel>("Queues");
             modelBuilder.EntitySet<QueueDetailModel>("QueueDetails");
-            modelBuilder.EntitySet<TestModel>("Test");
+            //modelBuilder.EntitySet<TestModel>("Test");
             modelBuilder.EntitySet<CaseModel>("Cases");
             modelBuilder.EntitySet<CaseSummaryModel>("CasesSummary");
             modelBuilder.EntitySet<CaseNotesModel>("CasesNotes");
             modelBuilder.EntitySet<IssueWIModel>("IssueWI");
+            modelBuilder.EntitySet<QueueActivityModel>("QueueActivity");
             
             Microsoft.Data.Edm.IEdmModel model = modelBuilder.GetEdmModel();            
             config.Routes.MapODataRoute("OdataRoute", "hapi", model);
