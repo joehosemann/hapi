@@ -186,8 +186,10 @@
     <Compile Include="Controllers\CasesController.cs" />
     <Compile Include="Controllers\CasesSummaryController.cs" />
     <Compile Include="Controllers\CasesNotesController.cs" />
+    <Compile Include="Controllers\EmployeeDetailsController.cs" />
     <Compile Include="Controllers\IssueWIController.cs" />
     <Compile Include="Controllers\QueueActivityController.cs" />
+    <Compile Include="Helpers\GetBusinessUnit.cs" />
     <Compile Include="Helpers\JsonResult.cs" />
     <Compile Include="Helpers\SqlHelper.cs">
       <SubType>Code</SubType>

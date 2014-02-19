@@ -1,0 +1,83 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using Dapper;
+using hapiservice.Models;
+
+namespace hapiservice.Helpers
+{
+    public class GetBusinessUnit
+    {
+        private static List<EmployeeBusinessUnitModel> listEmployeeBusinessUnit { get; set; }
+        
+        public string GetBusinessUnit(string username)
+        {
+            if (object.ReferenceEquals(null, listEmployeeBusinessUnit))
+            {
+                listEmployeeBusinessUnit = new List<EmployeeBusinessUnitModel>();
+                PopulateList();
+            }
+            return listEmployeeBusinessUnit.First(x => x.Username.ToLower() == username.ToLower()).BusinessUnit;
+        }
+       
+        public string GetFullName(string username)
+        {
+            if (object.ReferenceEquals(null, listEmployeeBusinessUnit))
+            {
+                listEmployeeBusinessUnit = new List<EmployeeBusinessUnitModel>();
+                PopulateList();
+            }
+            return listEmployeeBusinessUnit.First(x => x.Username.ToLower() == username.ToLower()).FullName;
+        }
+
+        private void PopulateList()
+        {
+            var query = (@" WITH CTE
+                            AS (
+	                            SELECT DIMORGANIZATION.ID
+		                            ,DIMORGANIZATION.ORGANIZATIONID
+		                            ,DIMORGANIZATION.ORGANIZATIONNAME
+		                            ,DIMORGANIZATION.PARENTORGID
+		                            ,DIMORGANIZATION.ISACTIVE
+		                            ,DIMORGANIZATION.ENDPERIODID
+		                            ,DIMEMPLOYEE.ID AS EMPLOYEEID
+		                            ,DIMEMPLOYEE.FIRSTNAME
+		                            ,DIMEMPLOYEE.LASTNAME
+		                            ,BPUSER.USERNAME
+	                            FROM [BPWAREHOUSEDB].[dbo].DIMORGANIZATION WITH (NOLOCK)
+	                            INNER JOIN [BPWAREHOUSEDB].[dbo].DIMEMPLOYEEORG WITH (NOLOCK) ON DIMORGANIZATION.ID = DIMEMPLOYEEORG.DIMORGANIZATIONID
+	                            INNER JOIN [BPWAREHOUSEDB].[dbo].DIMEMPLOYEE WITH (NOLOCK) ON DIMEMPLOYEE.ID = DIMEMPLOYEEORG.DIMEMPLOYEEID
+	                            INNER JOIN [BPMAINDB].[dbo].BPUSER WITH (NOLOCK) ON BPUSER.EMPLOYEEID = DIMEMPLOYEE.EMPLOYEEID
+	                            WHERE DIMEMPLOYEEORG.ENDPERIODID IS NULL
+		                            AND DIMEMPLOYEE.ENDPERIODID IS NULL
+	
+	                            UNION ALL
+	
+	                            SELECT parent.ID
+		                            ,parent.ORGANIZATIONID
+		                            ,parent.ORGANIZATIONNAME
+		                            ,parent.PARENTORGID
+		                            ,parent.ISACTIVE
+		                            ,parent.ENDPERIODID
+		                            ,child.EMPLOYEEID
+		                            ,child.FIRSTNAME
+		                            ,child.LASTNAME
+		                            ,child.USERNAME
+	                            FROM CTE AS child
+	                            INNER JOIN [BPWAREHOUSEDB].[dbo].DIMORGANIZATION AS parent WITH (NOLOCK) ON child.PARENTORGID = parent.ID
+	                            )
+                            SELECT ORGANIZATIONNAME as BusinessUnit
+	                            ,FIRSTNAME + ' ' + LASTNAME AS FullName
+	                            ,USERNAME as Username
+                            FROM CTE
+                            WHERE PARENTORGID = 1001"
+                );
+
+            using (var connection = Helpers.SqlHelper.GetOpenConnectionBluePumpkin())
+            {
+                listEmployeeBusinessUnit.AddRange(connection.Query<EmployeeBusinessUnitModel>(query.ToString()));
+            }
+        }
+    }
+}

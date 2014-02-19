@@ -11,5 +11,7 @@ namespace hapiservice.Models
         public string AgentState { get; set; }
         public string Reason { get; set; }
         public string TimeInStatus { get; set; }
+        public string Extension { get; set; }
+        public string IsPrimary { get; set; }
     }
 }

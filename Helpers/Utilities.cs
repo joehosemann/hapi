@@ -5,7 +5,7 @@ using System.Web;
 
 namespace hapiservice.Helpers
 {
-    public class Utilities
+    public static class Utilities
     {
         public static int TryIntParse(string value)
         {

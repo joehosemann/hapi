@@ -16,19 +16,12 @@ namespace hapiservice.Controllers
 {
     public class QueueActivityController : ApiController
     {
-        public IEnumerable<QueueActivityModel> Get([FromUri] string extension)
+        public IEnumerable<QueueActivityModel> Get([FromUri] string username)
         {
-            var isValidParams = false;
-            int intExtension = Utilities.TryIntParse(extension);
+                var extension = new MapClarifyUserToCiscoExtension().GetExtension(username);
+                var sbQuery = new StringBuilder();
 
-            if (intExtension > 0)
-            {
-                isValidParams = true;
-            }
-
-            var sbQuery = new StringBuilder();
-
-            sbQuery.Append(@"SELECT DISTINCT tP.FirstName + ' ' + tP.LastName AS NAME
+                sbQuery.Append(@"SELECT DISTINCT tP.FirstName + ' ' + tP.LastName AS NAME
 	                        ,CASE tART.AgentState
 		                        WHEN 2
 			                        THEN 'Not Ready'
@@ -50,6 +43,8 @@ namespace hapiservice.Controllers
 		                        ELSE tRC.ReasonText
 		                        END AS Reason
 	                        ,convert(VARCHAR, DATEADD(s, datediff(s, tART.DateTimeLastStateChange, getdate()), 0), 108) AS TimeInStatus
+                            ,tART.Extension AS Extension
+                            ,CASE WHEN tART.Extension = @extension THEN 'true' ELSE 'false' END as IsPrimary
                         FROM t_Agent_Real_Time tART WITH (NOLOCK)
                         JOIN t_Person tP WITH (NOLOCK) ON tART.Extension = tP.LoginName
                         JOIN t_Agent_Skill_Group_Real_Time tASGRT WITH (NOLOCK) ON tASGRT.SkillTargetID = tART.SkillTargetID
@@ -58,22 +53,68 @@ namespace hapiservice.Controllers
 	                        SELECT tASGRTind.SkillGroupSkillTargetID
 	                        FROM t_Agent_Skill_Group_Real_Time tASGRTind WITH (NOLOCK)
 	                        JOIN t_Agent_Real_Time tARTind WITH (NOLOCK) ON tARTind.SkillTargetID = tASGRTind.SkillTargetID
-	                        WHERE tASGRTind.SkillGroupSkillTargetID NOT IN ('5000','5124')
+	                        WHERE tASGRTind.SkillGroupSkillTargetID NOT IN ('5000','5124','6213','6214')
 		                        AND tARTind.Extension = @extension
 	                        ) bla ON bla.SkillGroupSkillTargetID = tASGRT.SkillGroupSkillTargetID");
-            if (isValidParams == false)
-            {
-                return null;
-            }
-            else
-            {
+
                 using (var connection = Helpers.SqlHelper.GetOpenConnectionEZView())
                 {
-                    return connection.Query<QueueActivityModel>(sbQuery.ToString(), new { extension = intExtension.ToString() });
+                    return connection.Query<QueueActivityModel>(sbQuery.ToString(), new { extension = extension });
                 }
-            }
-
 
         }
+    }
+    public class MapClarifyUserToCiscoExtension
+    {
+        private static List<MapClarifyUserToCiscoExtensionModel> clarifyUserToExtension { get; set; }
+
+        /// <summary>
+        /// Returns EZView extension from Clarify username
+        /// </summary>
+        /// <param name="clarifyUsername">Clarify username</param>
+        /// <returns>EZView extension</returns>
+        public string GetExtension(string clarifyUsername)
+        {
+            if (object.ReferenceEquals(null, clarifyUserToExtension))
+            {
+                clarifyUserToExtension = new List<MapClarifyUserToCiscoExtensionModel>();
+                PopulateList();
+            }
+            return clarifyUserToExtension.First(x => x.ClarifyUsername.ToLower() == clarifyUsername).CiscoExtension;
+        }
+
+        /// <summary>
+        /// Returns Clarify username from EZView extension
+        /// </summary>
+        /// <param name="ciscoExtension">EZView extension</param>
+        /// <returns>Clarify username</returns>
+        public string GetUsername(string ciscoExtension)
+        {
+            if (object.ReferenceEquals(null, clarifyUserToExtension))
+            {
+                clarifyUserToExtension = new List<MapClarifyUserToCiscoExtensionModel>();
+                PopulateList();
+            }
+            return clarifyUserToExtension.First(x => x.CiscoExtension == ciscoExtension).ClarifyUsername.ToLower();
+        }
+
+        private void PopulateList()
+        {
+            var query = (@"SELECT table_user.login_name as ClarifyUsername, table_employee.phone as CiscoExtension
+                                FROM table_employee with (nolock)
+                                inner join table_user with (nolock) on table_user.objid = table_employee.employee2user
+                                where table_employee.phone != ''");
+
+            using (var connection = Helpers.SqlHelper.GetOpenConnectionClarify())
+            {
+                clarifyUserToExtension.AddRange(connection.Query<MapClarifyUserToCiscoExtensionModel>(query.ToString()));
+            }
+        }
+    }
+
+    public class MapClarifyUserToCiscoExtensionModel
+    {
+        public string ClarifyUsername { get; set; }
+        public string CiscoExtension { get; set; }
     }
 }
