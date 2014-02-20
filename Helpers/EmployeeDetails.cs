@@ -7,28 +7,38 @@ using hapiservice.Models;
 
 namespace hapiservice.Helpers
 {
-    public class GetBusinessUnit
+    public class EmployeeDetails
     {
-        private static List<EmployeeBusinessUnitModel> listEmployeeBusinessUnit { get; set; }
-        
-        public string GetBusinessUnit(string username)
+        public static List<EmployeeDetailModel> ListEmployeeDetails { get; set; }
+
+        public EmployeeDetailModel GetEmployeeDetails(string username)
         {
-            if (object.ReferenceEquals(null, listEmployeeBusinessUnit))
+            if (object.ReferenceEquals(null, ListEmployeeDetails))
             {
-                listEmployeeBusinessUnit = new List<EmployeeBusinessUnitModel>();
+                ListEmployeeDetails = new List<EmployeeDetailModel>();
                 PopulateList();
             }
-            return listEmployeeBusinessUnit.First(x => x.Username.ToLower() == username.ToLower()).BusinessUnit;
+            return ListEmployeeDetails.First(x => x.Username.ToLower() == username.ToLower());
+        }
+
+        public string GetBusinessUnit(string username)
+        {
+            if (object.ReferenceEquals(null, ListEmployeeDetails))
+            {
+                ListEmployeeDetails = new List<EmployeeDetailModel>();
+                PopulateList();
+            }
+            return ListEmployeeDetails.First(x => x.Username.ToLower() == username.ToLower()).BusinessUnit;
         }
        
         public string GetFullName(string username)
         {
-            if (object.ReferenceEquals(null, listEmployeeBusinessUnit))
+            if (object.ReferenceEquals(null, ListEmployeeDetails))
             {
-                listEmployeeBusinessUnit = new List<EmployeeBusinessUnitModel>();
+                ListEmployeeDetails = new List<EmployeeDetailModel>();
                 PopulateList();
             }
-            return listEmployeeBusinessUnit.First(x => x.Username.ToLower() == username.ToLower()).FullName;
+            return ListEmployeeDetails.First(x => x.Username.ToLower() == username.ToLower()).FullName;
         }
 
         private void PopulateList()
@@ -76,7 +86,7 @@ namespace hapiservice.Helpers
 
             using (var connection = Helpers.SqlHelper.GetOpenConnectionBluePumpkin())
             {
-                listEmployeeBusinessUnit.AddRange(connection.Query<EmployeeBusinessUnitModel>(query.ToString()));
+                ListEmployeeDetails.AddRange(connection.Query<EmployeeDetailModel>(query.ToString()));
             }
         }
     }

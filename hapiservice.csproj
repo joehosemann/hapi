@@ -189,7 +189,7 @@
     <Compile Include="Controllers\EmployeeDetailsController.cs" />
     <Compile Include="Controllers\IssueWIController.cs" />
     <Compile Include="Controllers\QueueActivityController.cs" />
-    <Compile Include="Helpers\GetBusinessUnit.cs" />
+    <Compile Include="Helpers\EmployeeDetails.cs" />
     <Compile Include="Helpers\JsonResult.cs" />
     <Compile Include="Helpers\SqlHelper.cs">
       <SubType>Code</SubType>
@@ -206,6 +206,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\CaseSummaryModel.cs" />
+    <Compile Include="Models\EmployeeBusinessUnitModel.cs" />
     <Compile Include="Models\IssueWIModel.cs" />
     <Compile Include="Models\ProductModel.cs" />
     <Compile Include="Models\QueueActivityModel.cs" />

@@ -10,6 +10,7 @@ using Dapper;
 using System.Text;
 using System.Web.Mvc;
 using Mvc.JQuery.Datatables;
+using hapiservice.Helpers;
 
 namespace hapiservice.Controllers
 {
@@ -17,6 +18,7 @@ namespace hapiservice.Controllers
     {
         public IEnumerable<CaseModel> Get([FromUri] string type, int workable, int resolved, string param)
         {
+            string businessUnit = string.Empty;
             bool validParamters = true;
 
             var sbQuery = new StringBuilder();
@@ -151,12 +153,14 @@ namespace hapiservice.Controllers
                         LEFT JOIN table_wipbin wip WITH (NOLOCK) ON wip.objid = tc.case_wip2wipbin
                         WHERE ");
 
-            switch (type)
+            switch (type.ToLower())
             {
                 case "supervisor":
+                    businessUnit = new EmployeeDetails().GetBusinessUnit(param);
                     sbQuery.Append(@"supervisor.login_name = @param ");
                     break;
                 case "analyst":
+                    businessUnit = new EmployeeDetails().GetBusinessUnit(param);
                     sbQuery.Append(@"caseowner.login_name = @param ");
                     break;
                 case "site":
@@ -180,7 +184,7 @@ namespace hapiservice.Controllers
                     break;
             }
 
-           
+
             if (type == "tamclosed")
             {
                 // 1/21 JH- Removed the condition Closed-Resolved to allow rejected cases to show.
@@ -207,10 +211,16 @@ namespace hapiservice.Controllers
             switch (workable)
             {
                 case 0:
-                    sbQuery.Append(@"AND ([status].title IN ('','Pending - Install','Pending - PD','Pending - PS','Pending - Upgrade','Solved Pending Confirmation','File CR','Await SW Rel/Dev','Pending ClientAction','File DBA') OR [status].title ='Awaiting Hosting Services' AND dateadd(day, 3,table_status_chg.creation_time) < getdate())) ");
+                    if (businessUnit.ToLower() == "gmbu")
+                    { sbQuery.Append(@"AND [status].title IN ('','File CR','Await SW Rel/Dev','Pending ClientAction','Awaiting Hosting Services')) "); }
+                    else //ECBU
+                    { sbQuery.Append(@"AND ([status].title IN ('','Pending - Install','Pending - PD','Pending - PS','Pending - Upgrade','Solved Pending Confirmation','Suggested Resolution','File CR','Await SW Rel/Dev','Pending ClientAction','File DBA') OR [status].title ='Awaiting Hosting Services' AND dateadd(day, 3,table_status_chg.creation_time) < getdate())) "); }
                     break;
                 case 1:
-                    sbQuery.Append(@"AND ([status].title NOT IN ('','Pending - Install','Pending - PD','Pending - PS','Pending - Upgrade','Solved Pending Confirmation','Awaiting Hosting Services','File CR','Await SW Rel/Dev','Pending ClientAction','File DBA') OR [status].title ='Awaiting Hosting Services' AND dateadd(day, 3,table_status_chg.creation_time) > getdate())) ");
+                    if (businessUnit.ToLower() == "gmbu")
+                    { sbQuery.Append(@"AND [status].title NOT IN ('','File CR','Await SW Rel/Dev','Pending ClientAction','Awaiting Hosting Services')) "); }
+                    else //ECBU
+                    { sbQuery.Append(@"AND ([status].title NOT IN ('','Pending - Install','Pending - PD','Pending - PS','Pending - Upgrade','Solved Pending Confirmation','Awaiting Hosting Services','File CR','Await SW Rel/Dev','Pending ClientAction','File DBA') OR [status].title ='Awaiting Hosting Services' AND dateadd(day, 3,table_status_chg.creation_time) > getdate())) "); }
                     break;
                 default:
                     sbQuery.Append(@") ");
@@ -223,20 +233,28 @@ namespace hapiservice.Controllers
                 sbQuery.Append(@"AND tc.x_casetype != 'Customized Software' ");
             }
 
-            sbQuery.Append(@"AND caseowner.[status] = 1 
-                            ORDER BY Severity asc, Contacted desc");
+            sbQuery.Append(@"AND caseowner.[status] = 1 ORDER BY Severity asc, Contacted desc");
 
-            if (validParamters == false)
+            try
             {
-                return null;
-            }
-            else
-            {
-                using (var connection = Helpers.SqlHelper.GetOpenConnectionClarify())
+                if (validParamters == false)
                 {
-                    return connection.Query<CaseModel>(sbQuery.ToString(), new { param = param });
+                    return null;
+                }
+                else
+                {
+                    using (var connection = Helpers.SqlHelper.GetOpenConnectionClarify())
+                    {
+                        return connection.Query<CaseModel>(sbQuery.ToString(), new { param = param });
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                
+                throw;
+            }
+            
         }
     }
 }

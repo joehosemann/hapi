@@ -35,6 +35,7 @@ namespace hapiservice
             modelBuilder.EntitySet<CaseNotesModel>("CasesNotes");
             modelBuilder.EntitySet<IssueWIModel>("IssueWI");
             modelBuilder.EntitySet<QueueActivityModel>("QueueActivity");
+            modelBuilder.EntitySet<EmployeeDetailModel>("EmployeeDetails");
             
             Microsoft.Data.Edm.IEdmModel model = modelBuilder.GetEdmModel();            
             config.Routes.MapODataRoute("OdataRoute", "hapi", model);
